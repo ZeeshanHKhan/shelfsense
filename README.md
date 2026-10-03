@@ -6,6 +6,14 @@ An associate points an Android phone at a shelf label. The phone reads the barco
 
 The price check is a rule, not a guess by the model. The model only writes the associate task after a mismatch.
 
+## Watch the demo
+
+No install. The clip below is the store dashboard reacting to real scans: a match, a price mismatch written by llama3.2:3b, then an unknown barcode and a blurry read.
+
+![ShelfSense demo](presentation/demo.gif)
+
+[Download the MP4](presentation/demo.mp4) if you want the sharper copy.
+
 ## Flow
 
 ```mermaid
