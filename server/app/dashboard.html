@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShelfSense · On-prem store server price compliance</title>
+<style>
+  :root {
+    --bg:#07111f;
+    --text:#f4f7fb;
+    --muted:#9aa8c3;
+    --line:rgba(255,255,255,.1);
+    --ok:#3ee0a2;
+    --warn:#ffb020;
+    --bad:#ff5d73;
+    --accent:#7aa2ff;
+    --violet:#c084fc;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0;
+    min-height:100vh;
+    font:15px/1.45 "Segoe UI", system-ui, sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(900px 420px at 8% -10%, rgba(122,162,255,.35), transparent 60%),
+      radial-gradient(700px 380px at 100% 0%, rgba(255,93,115,.28), transparent 55%),
+      radial-gradient(800px 500px at 70% 110%, rgba(62,224,162,.18), transparent 50%),
+      var(--bg);
+  }
+  header {
+    position:sticky; top:0; z-index:2;
+    display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;
+    padding:18px 28px;
+    background:rgba(7,17,31,.72);
+    border-bottom:1px solid var(--line);
+    backdrop-filter:blur(16px);
+  }
+  .brand { display:flex; align-items:center; gap:14px; }
+  .mark {
+    width:42px; height:42px; display:block; flex:none;
+    border-radius:12px;
+    box-shadow:0 8px 24px rgba(15,42,74,.45);
+  }
+  h1 { margin:0; font-size:22px; letter-spacing:-.3px; }
+  h1 span { display:block; margin-top:2px; color:var(--muted); font-size:13px; font-weight:500; }
+  h1 span.model { color:#d7e4ff; font-size:12.5px; }
+  .connect { display:flex; align-items:center; gap:8px; }
+  .live {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 10px; border-radius:999px;
+    background:rgba(62,224,162,.12); color:var(--ok); font-size:12px; font-weight:650;
+  }
+  .live i {
+    width:8px; height:8px; border-radius:50%; background:var(--ok);
+    box-shadow:0 0 0 0 rgba(62,224,162,.7);
+    animation:pulse 1.8s infinite;
+  }
+  @keyframes pulse {
+    70% { box-shadow:0 0 0 8px rgba(62,224,162,0); }
+    100% { box-shadow:0 0 0 0 rgba(62,224,162,0); }
+  }
+  input {
+    background:rgba(255,255,255,.06); color:var(--text);
+    border:1px solid var(--line); border-radius:10px; padding:10px 12px; min-width:220px;
+  }
+  input:focus { outline:2px solid rgba(122,162,255,.7); border-color:transparent; }
+  button { cursor:pointer; font:inherit; }
+  #save {
+    background:linear-gradient(135deg,#7aa2ff,#5b8cff);
+    color:#fff; border:0; border-radius:10px; padding:10px 16px; font-weight:700;
+    box-shadow:0 8px 18px rgba(91,140,255,.35);
+  }
+  #save:hover { filter:brightness(1.08); }
+  main { padding:28px; max-width:1240px; margin:0 auto; }
+  .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; margin-bottom:22px; }
+  .kpi {
+    position:relative; overflow:hidden;
+    border-radius:18px; padding:16px 16px 14px;
+    background:rgba(255,255,255,.05);
+    border:1px solid var(--line);
+    box-shadow:0 16px 40px rgba(0,0,0,.22);
+  }
+  .kpi::before {
+    content:""; position:absolute; inset:0 auto 0 0; width:4px;
+    background:var(--c, var(--accent));
+  }
+  .kpi .label { color:var(--muted); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; }
+  .kpi .value { font-size:32px; font-weight:750; margin-top:6px; letter-spacing:-.6px; font-variant-numeric:tabular-nums; }
+  .k1 { --c:#7aa2ff; } .k2 { --c:#3ee0a2; } .k3 { --c:#ff5d73; } .k4 { --c:#c084fc; } .k5 { --c:#ffb020; }
+  .panel {
+    overflow:hidden; border-radius:20px;
+    background:rgba(10,18,34,.78);
+    border:1px solid var(--line);
+    box-shadow:0 20px 50px rgba(0,0,0,.28);
+  }
+  .panel-head {
+    display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+    padding:16px 18px 8px;
+  }
+  .panel-head h2 { margin:0; font-size:16px; }
+  .panel-head p { margin:0; color:var(--muted); font-size:12px; }
+  .wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; min-width:920px; }
+  th, td { text-align:left; padding:12px 14px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:650; font-size:11px; text-transform:uppercase; letter-spacing:.6px; }
+  tbody tr:hover { background:rgba(122,162,255,.06); }
+  .pill { display:inline-block; padding:4px 10px; border-radius:999px; font-size:11px; font-weight:750; letter-spacing:.3px; }
+  .MISMATCH { background:rgba(255,93,115,.18); color:#ffd0d6; }
+  .UNKNOWN_SKU { background:rgba(255,176,32,.18); color:#ffe3a8; }
+  .NEEDS_RECAPTURE { background:rgba(122,162,255,.2); color:#d6e2ff; }
+  .task { max-width:380px; }
+  .src { color:var(--muted); font-size:11px; margin-top:4px; }
+  .price-low { color:#ff8fa0; font-weight:750; }
+  .price-high { color:#ffd27a; font-weight:750; }
+  td button {
+    display:block; width:100%; margin:4px 0; border-radius:8px; padding:6px 8px; font-size:12px; font-weight:650;
+    background:transparent;
+  }
+  .btn-ok { color:#b9ffe2; border:1px solid rgba(62,224,162,.45); }
+  .btn-ok:hover { background:rgba(62,224,162,.16); }
+  .btn-warn { color:#ffe3a8; border:1px solid rgba(255,176,32,.5); }
+  .btn-warn:hover { background:rgba(255,176,32,.16); }
+  .empty { padding:36px 18px; color:var(--muted); text-align:center; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 108 108" aria-hidden="true">
+      <rect width="108" height="108" rx="24" fill="#0F2A4A"/>
+      <path fill="#FFFFFF" d="M31,30h4v48h-4z M73,30h4v48h-4z M31,49h46v3.5h-46z M31,74.5h46v3.5h-46z"/>
+      <path fill="#F5A524" d="M38,36h11v13h-11z M52,40h9v9h-9z M38,62h9v12.5h-9z"/>
+      <path fill="#3ECF8E" stroke="#0F2A4A" stroke-width="2" stroke-linejoin="round" d="M50,57.5h19l9,9.5l-9,9.5h-19z"/>
+      <path fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M55,67l4,4l8,-8.5"/>
+    </svg>
+    <h1>ShelfSense
+      <span>On-prem store server · price compliance using an edge AI model</span>
+      <span class="model">llama3.2:3b · Meta Llama 3.2, 3 billion parameters · local Ollama on the store GPU</span>
+    </h1>
+  </div>
+  <div class="connect">
+    <span class="live" id="conn"><i></i> Waiting for key</span>
+    <input id="key" type="password" placeholder="API key" aria-label="API key">
+    <button id="save">Connect</button>
+  </div>
+</header>
+<main>
+  <section class="kpis" aria-label="Key metrics">
+    <div class="kpi k1"><div class="label">Scans</div><div class="value" id="k-total">–</div></div>
+    <div class="kpi k2"><div class="label">Label compliance</div><div class="value" id="k-comp">–</div></div>
+    <div class="kpi k3"><div class="label">Open exceptions</div><div class="value" id="k-open">–</div></div>
+    <div class="kpi k4"><div class="label">Avg OCR confidence</div><div class="value" id="k-conf">–</div></div>
+    <div class="kpi k5"><div class="label">Misreads to model team</div><div class="value" id="k-mis">–</div></div>
+  </section>
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Open exceptions</h2>
+      <p>Refreshes every 3 seconds</p>
+    </div>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>Status</th><th>Item</th><th>Aisle</th><th>Shelf</th><th>System</th><th>OCR conf.</th><th>Associate task</th><th>Close</th></tr></thead>
+        <tbody id="rows"><tr><td colspan="8" class="empty">Enter the API key to connect.</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+<script>
+  const keyInput = document.getElementById("key");
+  const conn = document.getElementById("conn");
+  let apiKey = sessionStorage.getItem("shelfsense-key") || "";
+  keyInput.value = apiKey;
+  document.getElementById("save").onclick = () => { apiKey = keyInput.value.trim(); sessionStorage.setItem("shelfsense-key", apiKey); refresh(); };
+
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const money = c => c == null ? "—" : "$" + (c / 100).toFixed(2);
+  const api = (path, opts = {}) => fetch(path, { ...opts, headers: { "X-Api-Key": apiKey, "Content-Type": "application/json", ...(opts.headers || {}) } });
+  const setConn = (text) => { conn.lastChild.textContent = " " + text; };
+
+  async function resolve(id, resolution) {
+    let body = { resolution };
+    if (resolution === "OCR_MISREAD") {
+      const v = prompt("Actual price printed on the label (e.g. 3.49):");
+      if (v === null) return;
+      const n = Math.round(parseFloat(v) * 100);
+      if (!Number.isFinite(n)) return;
+      body.corrected_price_cents = n;
+    }
+    await api(`/api/v1/exceptions/${id}/resolve`, { method: "POST", body: JSON.stringify(body) });
+    refresh();
+  }
+  window.resolveEx = resolve;
+
+  async function refresh() {
+    if (!apiKey) { setConn("Waiting for key"); return; }
+    const [m, e] = await Promise.all([api("/api/v1/metrics"), api("/api/v1/exceptions")]);
+    if (m.status === 401) {
+      setConn("Key rejected");
+      document.getElementById("rows").innerHTML = '<tr><td colspan="8" class="empty">Invalid API key.</td></tr>';
+      return;
+    }
+    const metrics = await m.json(), rows = await e.json();
+    setConn("Live");
+    document.getElementById("k-total").textContent = metrics.total_scans;
+    document.getElementById("k-comp").textContent = (metrics.compliance_rate * 100).toFixed(1) + "%";
+    document.getElementById("k-open").textContent = metrics.open_exceptions;
+    document.getElementById("k-conf").textContent = metrics.avg_ocr_confidence.toFixed(2);
+    document.getElementById("k-mis").textContent = metrics.ocr_misreads_flagged;
+    document.getElementById("rows").innerHTML = rows.length ? rows.map(r => {
+      const shelfClass = r.shelf_price_cents == null || r.expected_price_cents == null ? ""
+        : r.shelf_price_cents < r.expected_price_cents ? "price-low"
+        : r.shelf_price_cents > r.expected_price_cents ? "price-high" : "";
+      return `
+      <tr>
+        <td><span class="pill ${esc(r.status)}">${esc(r.status.replaceAll("_", " "))}</span></td>
+        <td>${esc(r.description || "Unknown item")}<div class="src">${esc(r.barcode)}</div></td>
+        <td>${esc(r.aisle || "—")}</td>
+        <td class="${shelfClass}">${money(r.shelf_price_cents)}</td>
+        <td>${money(r.expected_price_cents)}</td>
+        <td>${r.ocr_confidence.toFixed(2)}</td>
+        <td class="task">${esc(r.task_text || "Generating…")}<div class="src">${esc(r.task_source || "")}</div></td>
+        <td><button class="btn-ok" onclick="resolveEx(${r.id},'LABEL_REPLACED')">Label replaced</button>
+            <button class="btn-warn" onclick="resolveEx(${r.id},'OCR_MISREAD')">OCR misread</button></td>
+      </tr>`;
+    }).join("") : '<tr><td colspan="8" class="empty">No open exceptions. The shelf is compliant.</td></tr>';
+  }
+  refresh();
+  setInterval(refresh, 3000);
+</script>
+</body>
+</html>

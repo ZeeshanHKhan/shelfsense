@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="432" height="432"><rect width="108" height="108" rx="24" fill="#0F2A4A"/>
+  <!-- shelf uprights + shelves -->
+  <path fill="#FFFFFF" d="M31,30h4v48h-4z M73,30h4v48h-4z M31,49h46v3.5h-46z M31,74.5h46v3.5h-46z"/>
+  <!-- stock on shelves -->
+  <path fill="#F5A524" d="M38,36h11v13h-11z M52,40h9v9h-9z M38,62h9v12.5h-9z"/>
+  <!-- price tag -->
+  <path fill="#3ECF8E" stroke="#0F2A4A" stroke-width="2" stroke-linejoin="round" d="M50,57.5h19l9,9.5l-9,9.5h-19z"/>
+  <!-- check -->
+  <path fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M55,67l4,4l8,-8.5"/>
+</svg>

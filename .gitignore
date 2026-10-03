@@ -1,0 +1,14 @@
+server/.venv/
+server/**/__pycache__/
+server/shelfsense.db
+android/local.properties
+android/.gradle/
+android/.kotlin/
+android/.idea/
+android/build/
+android/app/build/
+*.iml
+INTERVIEW_PREP*.md
+.vs/
+label image.jpg
+presentation/ShelfSense_Demo 2.pptx

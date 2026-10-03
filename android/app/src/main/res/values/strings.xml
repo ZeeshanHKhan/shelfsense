@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ShelfSense</string>
+    <string name="camera_permission_rationale">ShelfSense needs the camera to read shelf labels.</string>
+    <string name="grant_camera">Grant camera access</string>
+    <string name="camera_preview_description">Camera view of the shelf label</string>
+    <string name="capture">Capture label</string>
+    <string name="capture_description">Capture the current barcode and price</string>
+    <string name="sync_now">Sync now</string>
+    <string name="reading_barcode">Barcode: %1$s</string>
+    <string name="reading_price">Shelf price: %1$s</string>
+    <string name="reading_confidence">OCR confidence: %1$d%%</string>
+    <string name="not_detected">not detected</string>
+    <string name="hardware_scanner">(hardware scanner)</string>
+    <string name="pending_count">Waiting to sync: %1$d</string>
+    <string name="recent_scans">Recent scans</string>
+    <string name="captured_queued">Queued. Will sync when the store server is reachable.</string>
+    <string name="capture_incomplete">Point at a label until barcode and price are both detected.</string>
+    <string name="status_pending">Pending</string>
+    <string name="status_rejected">Rejected by server</string>
+    <string name="status_match">Match</string>
+    <string name="status_mismatch">Price mismatch</string>
+    <string name="status_unknown">Unknown item</string>
+    <string name="status_recapture">Rescan needed</string>
+</resources>
