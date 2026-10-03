@@ -145,7 +145,7 @@ def main():
         small = img.resize((960, 600), Image.Resampling.LANCZOS)
         gif_frames.append(small.convert("P", palette=Image.Palette.ADAPTIVE, colors=128))
         durations.append(int(seconds * 1000))
-    gif_path = ROOT / "demo.gif"
+    gif_path = ROOT / "phone-demo.gif"
     gif_frames[0].save(
         gif_path,
         save_all=True,
@@ -156,7 +156,7 @@ def main():
     )
 
     ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
-    mp4_path = ROOT / "demo.mp4"
+    mp4_path = ROOT / "phone-demo.mp4"
     import subprocess
     # One still per scene. The concat file holds each frame for its duration.
     concat = stills / "list.txt"

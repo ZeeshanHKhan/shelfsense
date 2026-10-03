@@ -6,13 +6,25 @@ An associate points an Android phone at a shelf label. The phone reads the barco
 
 The price check is a rule, not a guess by the model. The model only writes the associate task after a mismatch.
 
-## Watch the demo
+## Watch the demos
 
-No install. The clip below is the real Pixel app: it reads a shelf label, then the store dashboard shows the same scan. A 50% read is sent back for a rescan. The phone list also shows a match and a price mismatch.
+No install. The two clips are separate.
 
-![ShelfSense demo](presentation/demo.gif)
+### On the phone
 
-[Download the MP4](presentation/demo.mp4) if you want the sharper copy.
+The Pixel reads a shelf label, then the store dashboard shows that same scan. A 50% read is sent back for a rescan. The phone list also shows a match and a price mismatch.
+
+![ShelfSense on a Pixel](presentation/phone-demo.gif)
+
+[Download the phone MP4](presentation/phone-demo.mp4)
+
+### On the store server
+
+The dashboard reacting to scans: a match, a price mismatch written by llama3.2:3b, then an unknown barcode and a blurry read.
+
+![ShelfSense store dashboard](presentation/dashboard-demo.gif)
+
+[Download the dashboard MP4](presentation/dashboard-demo.mp4)
 
 ## Flow
 
