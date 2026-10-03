@@ -51,42 +51,89 @@ def card(title, lines, accent=GREEN):
     return img
 
 
-def crop_shot(name):
-    img = Image.open(SHOTS / name).convert("RGB").crop((0, 0, W, H))
-    return img
+def stage_phone(phone, title, lines, accent=GREEN):
+    canvas = Image.new("RGB", (W, H), NAVY)
+    draw = ImageDraw.Draw(canvas)
+    target_h = H - 40
+    target_w = max(1, int(phone.width * target_h / phone.height))
+    shot = phone.resize((target_w, target_h), Image.Resampling.LANCZOS)
+    canvas.paste(shot, (20, 20))
+    x = 20 + target_w + 36
+    draw.rectangle((x - 18, 0, x - 8, H), fill=accent)
+    draw.text((x, 70), title, font=face(34, True), fill=WHITE)
+    y = 140
+    body = face(24)
+    for line in lines:
+        for wrapped in wrap(draw, line, body, W - x - 36):
+            draw.text((x, y), wrapped, font=body, fill=MUTED)
+            y += 36
+        y += 14
+    return canvas
+
+
+def fit_dashboard(path):
+    img = Image.open(path).convert("RGB")
+    w, h = img.size
+    px = img.load()
+    last = 0
+    for y in range(int(h * 0.75)):
+        bright = False
+        for x in range(0, w, 6):
+            r, g, b = px[x, y]
+            if r + g + b > 200:
+                bright = True
+                break
+        if bright:
+            last = y
+    cropped = img.crop((0, 0, min(w, 1280), min(h, last + 28)))
+    canvas = Image.new("RGB", (W, H), NAVY)
+    fitted = cropped.resize((W, H), Image.Resampling.LANCZOS)
+    canvas.paste(fitted, (0, 0))
+    return canvas
+
+
+def grab_phone(ffmpeg, t):
+    out = ROOT / "_frames" / f"phone-{int(t * 10):03d}.png"
+    import subprocess
+    subprocess.check_call(
+        [ffmpeg, "-y", "-ss", str(t), "-i", str(Path(r"C:\Users\zkhan\AppData\Local\Temp\shelfsense-live.mp4")), "-frames:v", "1", str(out)],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    return Image.open(out).convert("RGB")
 
 
 def main():
+    import imageio_ffmpeg as ffmpeg_mod
+    ffmpeg = ffmpeg_mod.get_ffmpeg_exe()
+    (ROOT / "_frames").mkdir(exist_ok=True)
+    reading = grab_phone(ffmpeg, 3)
+    result = grab_phone(ffmpeg, 16)
+    dashboard = fit_dashboard(SHOTS / "phone-demo-dashboard.png")
     frames = [
-        (card("ShelfSense", [
-            "On-prem store price compliance.",
-            "Watch it here. Nothing to install.",
-        ]), 3.0),
-        (card("How it works", [
-            "1. The phone reads the barcode and the printed price. The photo stays on the device.",
-            "2. The laptop compares those numbers with the store price list.",
-            "3. llama3.2:3b, a local 3-billion-parameter model, writes the associate task.",
-        ], BLUE), 5.0),
-        (crop_shot("demo-01-empty.png"), 3.0),
-        (card("A correct label", [
-            "Cola matches the price list.",
-            "The dashboard stays clear. Only the barcode and the price crossed the network.",
-        ], GREEN), 4.0),
-        (crop_shot("demo-02-match.png"), 3.5),
-        (card("A wrong shelf price", [
-            "AA Batteries: the label says $9.99 and the system says $10.99.",
-            "The rule flags the mismatch. llama3.2:3b then writes the one-hour task.",
-        ], AMBER), 5.0),
-        (crop_shot("demo-03-mismatch.png"), 5.0),
-        (card("The other cases", [
-            "An unknown barcode and a blurry price still get a task.",
-            "Those two use fixed rules. The price mismatch used the local model.",
-        ], BLUE), 4.5),
-        (crop_shot("demo-04-exceptions.png"), 6.0),
-        (card("That is the demo", [
-            "The phone reads. The store server decides. The edge model writes the task.",
-            "If the model is off, the same task still comes from fixed rules.",
+        (card("ShelfSense on a Pixel", [
+            "The phone reads the shelf label. The store server decides.",
+            "Nothing to install. This is the real app.",
+        ]), 3.5),
+        (stage_phone(reading, "The phone reads it", [
+            "Barcode 070847811169, shelf price $4.59, OCR confidence 50%.",
+            "The photo never leaves the device.",
+            "Recent scans already show a match and a price mismatch.",
+        ], BLUE), 6.0),
+        (card("Capture", [
+            "One tap sends the barcode, the price, and the confidence.",
+            "The store server compares the price with its list. The model does not make that call.",
+        ], AMBER), 4.5),
+        (stage_phone(result, "Three results on the phone", [
+            "This read was 50% confident, under the 60% line, so the server asked for a rescan.",
+            "Energy Drink at $2.99 matched.",
+            "Cola at $4.59 against $6.99 is a price mismatch.",
+        ], AMBER), 6.5),
+        (card("Same scan, store server", [
+            "The Pixel's read landed as Needs recapture for Energy Drink 16oz.",
+            "Shelf $4.59, system $2.99, confidence 0.50. The task came from the fixed rule.",
         ], GREEN), 4.5),
+        (dashboard, 6.5),
     ]
 
     stills = ROOT / "_frames"

@@ -8,7 +8,7 @@ The price check is a rule, not a guess by the model. The model only writes the a
 
 ## Watch the demo
 
-No install. The clip below is the store dashboard reacting to real scans: a match, a price mismatch written by llama3.2:3b, then an unknown barcode and a blurry read.
+No install. The clip below is the real Pixel app: it reads a shelf label, then the store dashboard shows the same scan. A 50% read is sent back for a rescan. The phone list also shows a match and a price mismatch.
 
 ![ShelfSense demo](presentation/demo.gif)
 
